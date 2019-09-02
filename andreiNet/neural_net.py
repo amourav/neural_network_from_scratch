@@ -11,6 +11,23 @@ from andreiNet.Initialization import (init_layer_weight_he_norm,
                                       init_layer_bias_zeros)
 
 
+implemented_weight_inits = {'unit_norm': init_layer_weight_unit_norm,
+                            'ones': init_layer_weights_ones,
+                            'he_norm': init_layer_weight_he_norm,
+                            }
+implemented_bias_inits = {'zeros': init_layer_bias_zeros,
+                          }
+implemented_activations = {'sigmoid': sigmoid,
+                           'ReLU': ReLU,
+                           'linear': linear}
+implemented_derivatives = {'sigmoid': sigmoid_derivative,
+                           'ReLU': ReLU_derivative,
+                           'linear': linear_derivative
+                           }
+implemented_losses = {'cross_entropy': cross_entropy, }
+loss_gradients = {'cross_entropy': cross_entropy_derivative, }
+
+
 class NeuralNetwork:
     def __init__(self,
                  hidden=(8, 6),
@@ -37,19 +54,21 @@ class NeuralNetwork:
         self._set_act_func()
         self._set_loss()
 
-    def _init_neural_network(self):
-        implemented_weight_inits = {'unit_norm': init_layer_weight_unit_norm,
-                                    'ones': init_layer_weights_ones,
-                                    'he_norm': init_layer_weight_he_norm,
-                                    }
-        implemented_bias_inits = {'zeros': init_layer_bias_zeros,
-                                  }
+    def _set_weight_init(self):
         try:
-            init_layer_weight = implemented_weight_inits[self.init_weights]
-            init_layer_bias = implemented_bias_inits[self.init_bias]
+            self.init_layer_weight = implemented_weight_inits[self.init_weights]
         except KeyError:
-            raise Exception('{} or {} not accepted'.format(self.init_weights,
-                                                           self.init_bias))
+            raise Exception('{} not accepted'.format(self.init_weights))
+
+    def _set_bias_init(self):
+        try:
+            self.init_layer_bias = implemented_bias_inits[self.init_bias]
+        except KeyError:
+            raise Exception('{} not accepted'.format(self.init_bias))
+
+    def _init_neural_network(self):
+        self._set_weight_init()
+        self._set_bias_init()
 
         self.weights = []
         self.biases = []
@@ -63,24 +82,18 @@ class NeuralNetwork:
             else:
                 input_shape = self.hidden[layer - 1]
                 output_shape = self.hidden[layer]
-            w_l = init_layer_weight(input_shape, output_shape)
-            b_l = init_layer_bias(output_shape)
+            w_l = self.init_layer_weight(input_shape,
+                                         output_shape)
+            b_l = self.init_layer_bias(output_shape)
             self.weights.append(w_l)
             self.biases.append(b_l)
 
     def _set_act_func(self):
-        implemented_activations = {'sigmoid': sigmoid,
-                                   'ReLU': ReLU,
-                                   'linear': linear}
         # set activation function
         try:
             self.act = implemented_activations[self.activation]
         except KeyError:
             raise Exception('{} not accepted'.format(self.activation))
-
-        implemented_derivatives = {'sigmoid': sigmoid_derivative,
-                                   'ReLU': ReLU_derivative,
-                                   'linear': linear_derivative}
 
         # set activation derivative (da/dz)
         try:
@@ -99,15 +112,16 @@ class NeuralNetwork:
             raise Exception('{} not accepted.'.format(self.mode))
 
     def _set_loss(self):
-        implemented_losses = {'cross_entropy': cross_entropy, }
-        loss_gradients = {'cross_entropy': cross_entropy_derivative, }
         try:
             self.loss_func = implemented_losses[self.loss]
             self.loss_grad_func = loss_gradients[self.loss]
         except KeyError:
             raise Exception('{} not accepted'.format(self.loss))
 
-    def train(self, X, y, n_epochs=10, lr=0.001, n_classes=None):
+    def train(self, X, y,
+              n_epochs=10, lr=0.001,
+              n_classes=None):
+
         self.n_samples, self.n_features = X.shape
         self.classes = n_classes
         if n_classes is None:
@@ -119,37 +133,33 @@ class NeuralNetwork:
         for e in range(1, n_epochs + 1):
             self.loss_e = 0
             # shuffle data
-
             if self.shuffle:
                 X, y_one_hot = shuffle_data(X, y_one_hot)
-
             # iterate through batches
             for X_batch, y_batch in batch_iterator(X, y_one_hot, self.batch_size):
                 self._feed_forward(X_batch)
                 self._back_prop(X_batch, y_batch, lr)
                 self.loss_batch = self.loss_func(y_batch, self.activations[-1])
                 self.loss_e += self.loss_batch
-
         if self.verbose:
             print(e, 'trn loss = {}'.format(self.loss_e))
         print('epoch {}: final trn loss = {}'.format(e, self.loss_e))
 
     def _feed_forward(self, X):
         self.activations = []
-        self.Z_list = []
+        self.z_list = []
         act = self.act
         for layer, (w_l, b_l) in enumerate(zip(self.weights, self.biases)):
             if layer == 0:
                 prev = X
             else:
                 prev = self.activations[-1]
-
             if layer == len(self.hidden):
                 act = self.last_act
-            Z_l = np.dot(prev, w_l) + b_l
-            act_l = act(Z_l)
+            z_l = np.dot(prev, w_l) + b_l
+            act_l = act(z_l)
             self.activations.append(act_l)
-            self.Z_list.append(Z_l)
+            self.z_list.append(z_l)
 
     def predict(self, X):
         self._feed_forward(X)
@@ -165,13 +175,12 @@ class NeuralNetwork:
         # gradient from last (output) layer
         self.dL_dz = self._get_gradient(y=y,
                                         a=self.activations[-1],
-                                        z=self.Z_list[-1])
-
+                                        z=self.z_list[-1])
         new_weights, new_biases = [], []
         L = len(self.activations)
         for layer in range(L - 1, -1, -1):
             w_l, b_l = self.weights[layer], self.biases[layer]
-            Z_l = self.Z_list[layer]
+            z_l = self.z_list[layer]
             # activation from previous layer
             if layer == 0:
                 act_prev = X
@@ -180,7 +189,7 @@ class NeuralNetwork:
             # layer gradient
             if layer < L - 1:
                 dL_da = self.dL_dz @ self.weights[layer + 1].T  # dL_da wrt activation of current layer
-                da_dz = self.act_derivative(Z_l)
+                da_dz = self.act_derivative(z_l)
                 self.dL_dz = np.multiply(da_dz, dL_da)
 
             dL_dW = act_prev.T @ self.dL_dz  # Weight Error
