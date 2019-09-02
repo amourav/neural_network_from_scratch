@@ -140,10 +140,14 @@ class NeuralNetwork:
         return metric_vals
 
     def train(self, X, y,
+              val_data=None,
               n_epochs=10, lr=0.001,
               n_classes=None):
         self.n_samples, self.n_features = X.shape
         y_one_hot = self._encode(y, n_classes)
+        if val_data is not None:
+            X_val, y_val = val_data
+            y_val_ohe = self._encode(y_val, n_classes)
         self._init_neural_network()
 
         for e in range(1, n_epochs + 1):
@@ -159,14 +163,16 @@ class NeuralNetwork:
                 self.loss_e += self.loss_batch
 
             self.metrics_trn = self._get_metrics(X, y_one_hot)
-            
-        if self.verbose:
+
+            if val_data is not None:
+                self.metrics_val = self._get_metrics(X_val, y_val_ohe)
+
+        if self.verbose or e == n_epochs:
             print('epoch {}: final trn loss = {} trn metrics {}'.format(e,
                                                                         self.loss_e,
                                                                         self.metrics_trn))
-        print('epoch {}: final trn loss = {} trn metrics {}'.format(e,
-                                                                    self.loss_e,
-                                                                    self.metrics_trn))
+            if val_data is not None:
+                print('val metrics {}'.format(self.metrics_val))
 
     def _feed_forward(self, X):
         self.activations = []
