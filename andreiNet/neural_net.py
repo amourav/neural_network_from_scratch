@@ -1,123 +1,17 @@
 import numpy as np
-
-
-def init_layer_weight_he_norm(input_shape, output_shape):
-    stdev = np.sqrt(2.0 / input_shape)
-    return np.random.normal(scale=stdev, size=(input_shape, output_shape))
-
-
-def init_layer_weight_unit_norm(input_shape, output_shape):
-    return np.random.normal(size=(input_shape, output_shape))
-
-
-def init_layer_weights_ones(input_shape, output_shape):
-    return np.ones((input_shape, output_shape))
-
-
-def init_layer_bias_zeros(length):
-    return np.zeros(length)
-
-
-def softmax(z):
-    # https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
-    exp = np.exp(z - np.max(z))
-    return exp / np.sum(exp, axis=1)[:, None]
-
-
-def softmax_gradient(z, sm=None):
-    # https://stackoverflow.com/questions/57741998/vectorizing-softmax-cross-entropy-gradient
-    if sm is None:
-        sm = softmax(z)
-    res = np.einsum('ij,ik->ijk', sm, -sm)
-    np.einsum('ijj->ij', res)[...] += sm
-    return res
-
-
-def softmax_gradient(z, sm=None):
-    # https://stackoverflow.com/questions/57741998/vectorizing-softmax-cross-entropy-gradient
-    if sm is None:
-        sm = softmax(z)
-    res = np.einsum('ij,ik->ijk', sm, -sm)
-    np.einsum('ijj->ij', res)[...] += sm
-    return res
-
-
-def linear(z):
-    return z
-
-
-def linear_derivative(z):
-    # np.repeat(np.eye(K, K)[np.newaxis, :, :], N, axis=0).shape
-    return np.ones((z.shape[0]))
-
-
-def linear_gradient(z):
-    # np.repeat(np.eye(K, K)[np.newaxis, :, :], N, axis=0).shape
-    return np.eye((z.shape[0]))
-
-
-def sigmoid(z):
-    return 1 / (1 + np.exp(-z))
-
-
-def sigmoid_derivative(z):
-    s = sigmoid(z)
-    return s * (1 - z)
-
-
-def ReLU(z):
-    return np.maximum(z, 0, z)
-
-
-def ReLU_derivative(z):
-    return (z > 0).astype(int)
-
-
-def cross_entropy(y_true, y_pred):
-    N = len(y_true)
-    return -np.sum(y_true * np.log(y_pred)) / N
-
-
-def cross_entropy_derivative(y_true, y_pred):
-    N = len(y_true)
-    return -(y_true / y_pred)  # / N
-
-
-def one_hot_encode(y, n_classes):
-    y_one_hot = np.zeros((len(y), n_classes))
-    for i, y_i in enumerate(y):
-        y_one_hot[i, y_i] = 1
-    return y_one_hot
-
-
-def normalize_trn_data(X):
-    """
-    normalize data to have zero mean and unit variance
-    :param X: input data (array) - X.shape = (n_samples, m_features)
-    :return:
-    """
-    mean, std = X.mean(axis=0), X.std(axis=0)
-    return (X - mean) / std, (mean, std)
-
-
-def shuffle_data(X, y):
-    idx = np.arange(X.shape[0])
-    np.random.shuffle(idx)
-    return X[idx], y[idx]
-
-
-def batch_iterator(X, y, batch_size):
-    N, _ = X.shape
-    batch_idxs = np.arange(0, N, batch_size)
-
-    for start in batch_idxs:
-        stop = start + batch_size
-        X_batch, y_batch = X[start:stop], y[start:stop]
-        yield X_batch, y_batch
+from andreiNet.utils import one_hot_encode, norm_data, shuffle_data, batch_iterator
+from andreiNet.losses import cross_entropy, cross_entropy_derivative
+from andreiNet.activations import (softmax, softmax_gradient,
+                                   linear, linear_derivative, linear_gradient,
+                                   sigmoid, sigmoid_derivative,
+                                   ReLU, ReLU_derivative)
+from andreiNet.Initialization import (init_layer_weight_he_norm,
+                                      init_layer_weight_unit_norm,
+                                      init_layer_weights_ones,
+                                      init_layer_bias_zeros)
 
 
 class NeuralNetwork:
-
     def __init__(self,
                  hidden=(8, 6),
                  init_weights='he_norm',
@@ -222,7 +116,7 @@ class NeuralNetwork:
         y_one_hot = one_hot_encode(y, self.n_classes)
         self._init_neural_network()
 
-        for e in range(n_epochs):
+        for e in range(1, n_epochs + 1):
             self.loss_e = 0
             # shuffle data
 
