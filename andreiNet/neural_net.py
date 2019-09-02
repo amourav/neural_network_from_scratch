@@ -27,7 +27,8 @@ implemented_act_derivatives = {'sigmoid': sigmoid_derivative,
                                }
 implemented_losses = {'cross_entropy': cross_entropy, }
 implemented_loss_gradients = {'cross_entropy': cross_entropy_derivative, }
-implemented_metrics = {'accuracy': accuracy, }
+implemented_metrics = {'accuracy': accuracy,
+                       'cross_entropy': cross_entropy, }
 
 class NeuralNetwork:
     def __init__(self,
@@ -66,12 +67,21 @@ class NeuralNetwork:
         except KeyError:
             raise Exception('{} not accepted'.format(self.init_bias))
 
+    def _init_history(self):
+        self.trn_metric_hist = {}
+        self.val_metric_hist = {}
+        if self.metrics is not None:
+            for metric in self.metrics:
+                self.trn_metric_hist[metric] = []
+                self.val_metric_hist[metric] = []
+
     def _init_neural_network(self):
         np.random.seed(self.random_state)
         self._set_act_func()
         self._set_loss()
         self._set_weight_init()
         self._set_bias_init()
+        self._init_history()
         self.weights = []
         self.biases = []
         for layer in range(len(self.hidden) + 1):
@@ -139,15 +149,24 @@ class NeuralNetwork:
             metric_vals[metric] = metric_func(y, y_pred)
         return metric_vals
 
+    def _update_history(self, update_val=False):
+        for metric in self.metrics:
+            self.trn_metric_hist[metric].append(self.metrics_trn[metric])
+            if update_val:
+                self.val_metric_hist[metric].append(self.metrics_val[metric])
+
     def train(self, X, y,
               val_data=None,
               n_epochs=10, lr=0.001,
               n_classes=None):
+
         self.n_samples, self.n_features = X.shape
         y_one_hot = self._encode(y, n_classes)
+
         if val_data is not None:
             X_val, y_val = val_data
             y_val_ohe = self._encode(y_val, n_classes)
+
         self._init_neural_network()
 
         for e in range(1, n_epochs + 1):
@@ -166,6 +185,7 @@ class NeuralNetwork:
 
             if val_data is not None:
                 self.metrics_val = self._get_metrics(X_val, y_val_ohe)
+            self._update_history(update_val=(val_data is not None))
 
         if self.verbose or e == n_epochs:
             print('epoch {}: final trn loss = {} trn metrics {}'.format(e,
