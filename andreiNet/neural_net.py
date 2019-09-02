@@ -1,5 +1,6 @@
 import numpy as np
 from andreiNet.utils import one_hot_encode, norm_data, shuffle_data, batch_iterator
+from andreiNet.metrics import accuracy
 from andreiNet.losses import cross_entropy, cross_entropy_derivative
 from andreiNet.activations import (softmax, softmax_gradient,
                                    linear, linear_derivative, linear_gradient,
@@ -20,13 +21,13 @@ implemented_bias_inits = {'zeros': init_layer_bias_zeros,
 implemented_activations = {'sigmoid': sigmoid,
                            'ReLU': ReLU,
                            'linear': linear}
-implemented_derivatives = {'sigmoid': sigmoid_derivative,
+implemented_act_derivatives = {'sigmoid': sigmoid_derivative,
                            'ReLU': ReLU_derivative,
                            'linear': linear_derivative
-                           }
+                               }
 implemented_losses = {'cross_entropy': cross_entropy, }
-loss_gradients = {'cross_entropy': cross_entropy_derivative, }
-
+implemented_loss_gradients = {'cross_entropy': cross_entropy_derivative, }
+implemented_metrics = {'accuracy': accuracy, }
 
 class NeuralNetwork:
     def __init__(self,
@@ -36,6 +37,7 @@ class NeuralNetwork:
                  activation='ReLU',
                  loss='cross_entropy',
                  mode='classification',
+                 metrics=None,
                  shuffle=True,
                  verbose=False,
                  batch_size=10,
@@ -50,9 +52,7 @@ class NeuralNetwork:
         self.verbose = verbose
         self.shuffle = shuffle
         self.batch_size = batch_size
-        np.random.seed(self.random_state)
-        self._set_act_func()
-        self._set_loss()
+        self.metrics = metrics
 
     def _set_weight_init(self):
         try:
@@ -67,9 +67,11 @@ class NeuralNetwork:
             raise Exception('{} not accepted'.format(self.init_bias))
 
     def _init_neural_network(self):
+        np.random.seed(self.random_state)
+        self._set_act_func()
+        self._set_loss()
         self._set_weight_init()
         self._set_bias_init()
-
         self.weights = []
         self.biases = []
         for layer in range(len(self.hidden) + 1):
@@ -97,7 +99,7 @@ class NeuralNetwork:
 
         # set activation derivative (da/dz)
         try:
-            self.act_derivative = implemented_derivatives[self.activation]
+            self.act_derivative = implemented_act_derivatives[self.activation]
         except KeyError:
             raise Exception('derivative not implemented for {}'.format(self.activation))
 
@@ -114,20 +116,34 @@ class NeuralNetwork:
     def _set_loss(self):
         try:
             self.loss_func = implemented_losses[self.loss]
-            self.loss_grad_func = loss_gradients[self.loss]
+            self.loss_grad_func = implemented_loss_gradients[self.loss]
         except KeyError:
             raise Exception('{} not accepted'.format(self.loss))
+
+    def _encode(self, y, n_classes):
+        if n_classes is None and self.mode == 'classification':
+            self.n_classes = len(set(y))
+        y_one_hot = one_hot_encode(y, self.n_classes)
+        return y_one_hot
+
+    def _get_metrics(self, X, y):
+        metric_vals = {}
+        if self.metrics is None:
+            return metric_vals
+        y_pred = self.predict(X)
+        for metric in self.metrics:
+            try:
+                metric_func = implemented_metrics[metric]
+            except KeyError:
+                raise Exception('{} not accepted metric'.format(metric))
+            metric_vals[metric] = metric_func(y, y_pred)
+        return metric_vals
 
     def train(self, X, y,
               n_epochs=10, lr=0.001,
               n_classes=None):
-
         self.n_samples, self.n_features = X.shape
-        self.classes = n_classes
-        if n_classes is None:
-            self.classes = set(y)
-            self.n_classes = len(self.classes)
-        y_one_hot = one_hot_encode(y, self.n_classes)
+        y_one_hot = self._encode(y, n_classes)
         self._init_neural_network()
 
         for e in range(1, n_epochs + 1):
@@ -141,9 +157,16 @@ class NeuralNetwork:
                 self._back_prop(X_batch, y_batch, lr)
                 self.loss_batch = self.loss_func(y_batch, self.activations[-1])
                 self.loss_e += self.loss_batch
+
+            self.metrics_trn = self._get_metrics(X, y_one_hot)
+            
         if self.verbose:
-            print(e, 'trn loss = {}'.format(self.loss_e))
-        print('epoch {}: final trn loss = {}'.format(e, self.loss_e))
+            print('epoch {}: final trn loss = {} trn metrics {}'.format(e,
+                                                                        self.loss_e,
+                                                                        self.metrics_trn))
+        print('epoch {}: final trn loss = {} trn metrics {}'.format(e,
+                                                                    self.loss_e,
+                                                                    self.metrics_trn))
 
     def _feed_forward(self, X):
         self.activations = []
