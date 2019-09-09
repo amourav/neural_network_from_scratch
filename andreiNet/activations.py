@@ -1,9 +1,11 @@
 import numpy as np
 
+eps = 1e-10
+
 
 def softmax(z):
     # https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
-    exp = np.exp(z - np.max(z))
+    exp = np.exp(z - np.max(z)) # + eps * np.ones(z.shape)
     return exp / np.sum(exp, axis=1)[:, None]
 
 
