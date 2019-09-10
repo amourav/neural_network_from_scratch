@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def accuracy(y_true, y_pred):
     """
     measure accuracy of predictions (y_pred) given true labels (y_true)

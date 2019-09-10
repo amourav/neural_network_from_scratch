@@ -4,7 +4,7 @@ import sys
 
 from andreiNet.utils import one_hot_encode, norm_data, shuffle_data, batch_iterator
 from andreiNet.metrics import accuracy
-from andreiNet.losses import cross_entropy, cross_entropy_derivative
+from andreiNet.losses import cross_entropy, cross_entropy_derivative, MSE, MSE_derivative
 from andreiNet.activations import (softmax, softmax_gradient,
                                    linear, linear_derivative, linear_gradient,
                                    sigmoid, sigmoid_derivative,
@@ -28,12 +28,16 @@ implemented_act_derivatives = {'sigmoid': sigmoid_derivative,
                                'ReLU': ReLU_derivative,
                                'linear': linear_derivative
                                }
-implemented_losses = {'cross_entropy': cross_entropy, }
-implemented_loss_gradients = {'cross_entropy': cross_entropy_derivative, }
+implemented_losses = {'cross_entropy': cross_entropy,
+                      'MSE': MSE}
+implemented_loss_gradients = {'cross_entropy': cross_entropy_derivative,
+                              'MSE': MSE_derivative}
 implemented_metrics = {'accuracy': accuracy,
+                       'MSE': MSE,
                        'cross_entropy': cross_entropy, }
 metric_criteria = {'accuracy': 'max',
                    'cross_entropy': 'min', }
+
 
 class NeuralNetwork:
     def __init__(self,
@@ -98,6 +102,7 @@ class NeuralNetwork:
             else:
                 input_shape = self.hidden[layer - 1]
                 output_shape = self.hidden[layer]
+            #('init layer {}'.format(layer), input_shape, output_shape)
             w_l = self.init_layer_weight(input_shape,
                                          output_shape)
             b_l = self.init_layer_bias(output_shape)
@@ -136,10 +141,14 @@ class NeuralNetwork:
 
     def _encode(self, y, n_classes):
         self.n_classes = n_classes
-        if n_classes is None and self.mode == 'classification':
-            self.n_classes = len(set(y))
-        y_one_hot = one_hot_encode(y, self.n_classes)
-        return y_one_hot
+        if self.mode == 'classification':
+            if n_classes is None:
+                self.n_classes = len(set(y))
+            y = one_hot_encode(y, self.n_classes)
+        elif self.mode == 'regression':
+            y = y[:, None]
+            self.n_classes = 1
+        return y
 
     def _set_early_stop(self, early_stop):
         self.early_stop = early_stop

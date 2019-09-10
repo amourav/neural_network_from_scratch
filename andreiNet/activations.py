@@ -23,11 +23,13 @@ def linear(z):
 
 
 def linear_derivative(z):
-    return np.ones((z.shape[0]))
+    return np.ones((z.shape[1]))
 
 
 def linear_gradient(z):
-    return np.eye((z.shape[0]))
+    N, K = z.shape
+    I = np.repeat(np.eye(K, K)[np.newaxis, :, :], N, axis=0)
+    return I
 
 
 def sigmoid(z):

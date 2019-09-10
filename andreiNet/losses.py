@@ -17,5 +17,5 @@ def MSE(y_true, y_pred):
 
 def MSE_derivative(y_true, y_pred):
     N = len(y_true)
-    return (-2 / N) * np.sum(y_true - y_pred)
+    return (-2 / N) * (y_true - y_pred)
 
