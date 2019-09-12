@@ -2,6 +2,12 @@ import numpy as np
 
 
 def one_hot_encode(y, n_classes):
+    """
+    one hot encode
+    :param y: target data - npy arr
+    :param n_classes: number of classes - int
+    :return: encoded target - npy arr
+    """
     y_ohe = np.zeros((len(y), n_classes))
     y_ohe[np.arange(len(y)), y] = 1
     return y_ohe
@@ -11,19 +17,32 @@ def norm_data(X):
     """
     normalize data to have zero mean and unit variance
     :param X: input data (array) - X.shape = (n_samples, m_features)
-    :return:
+    :return: normalized data
     """
     mean, std = X.mean(axis=0), X.std(axis=0)
     return (X - mean) / std, (mean, std)
 
 
 def shuffle_data(X, y):
+    """
+    Shuffle input and targets together
+    :param X: input data - npy arr
+    :param y: target data - npy arr
+    :return: shuffled data (X, y) - tuple
+    """
     idx = np.arange(X.shape[0])
     np.random.shuffle(idx)
     return X[idx], y[idx]
 
 
 def batch_iterator(X, y, batch_size):
+    """
+    Iterate of data to generate batches
+    :param X: input data - npy arr
+    :param y: target data - npy arr
+    :param batch_size: batch size - int
+    :yield: batch of input and target data
+    """
     N, _ = X.shape
     batch_idxs = np.arange(0, N, batch_size)
 
