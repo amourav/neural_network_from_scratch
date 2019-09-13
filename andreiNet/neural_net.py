@@ -290,11 +290,13 @@ class NeuralNetwork:
         if save_best and (val_data is not None):
             current_score = self.val_metric_hist[self.loss][-1]
             if epoch == 1:
-                print('model checkpoint {}'.format(epoch))
+                if self.verbose:
+                    print('model checkpoint {}'.format(epoch))
                 self._model_checkpoint(current_score, epoch)
             else:
                 if current_score < self.best_val_loss:
-                    print('model checkpoint {}'.format(epoch))
+                    if self.verbose:
+                        print('model checkpoint {}'.format(epoch))
                     self.best_val_loss = current_score
                     self._model_checkpoint(current_score, epoch)
 
