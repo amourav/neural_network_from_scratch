@@ -10,7 +10,7 @@ Artificial neural networks (ANN) systems are computing systems that are inspired
 
 In ANN implementations, the "signal" at a connection is a real number, and the output of each neuron is computed by some non-linear function of the sum of its inputs. The connections are called edges. Neurons and edges typically have a weight that adjusts as learning proceeds. The weight increases or decreases the strength of the signal at a connection. Neurons may have a threshold such that a signal is sent only if the aggregate signal crosses that threshold. Typically, neurons are aggregated into layers. Different layers may perform different transformations on their inputs. Signals travel from the first layer (the input layer), to the last layer (the output layer), possibly after traversing the layers multiple times.
 
-![Image](imgs\neural_network.png) <br/>
+![Image](imgs/neural_network.png) <br/>
 ANN illustration.
 
 source: https://en.wikipedia.org/wiki/Artificial_neural_network
@@ -20,8 +20,9 @@ Here I tried to replicate the performance of the identical network architecture 
 
 #### Classification
 Iris Dataset (https://en.wikipedia.org/wiki/Iris_flower_data_set)
-![Image](imgs\clf_model_hist.png) <br/>
-![Image](imgs\clf_comparison.png) <br/>
+
+![Image](imgs/clf_model_hist.png) <br/>
+![Image](imgs/clf_comparison.png) <br/>
 andreiNet Accuracy:
 ```
 trn acc 1.0
@@ -35,8 +36,9 @@ test acc 0.908
 
 #### Regression
 Boston House Prices Dataset (http://lib.stat.cmu.edu/datasets/boston)
-![Image](imgs\reg_model_hist.png) <br/>
-![Image](imgs\reg_comparison.png) <br/>
+
+![Image](imgs/reg_model_hist.png) <br/>
+![Image](imgs/reg_comparison.png) <br/>
 andreiNet MSE:
 ```
 trn MSE 3.74
