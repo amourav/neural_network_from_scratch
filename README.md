@@ -18,7 +18,7 @@ source: https://en.wikipedia.org/wiki/Artificial_neural_network
 ## Dataset
 Here I tried to replicate the performance of the identical network architecture implemented in Keras on some toy datasets.
 
-#### Classification
+### Classification
 Iris Dataset (https://en.wikipedia.org/wiki/Iris_flower_data_set)
 
 ![Image](imgs/clf_model_hist.png) <br/>
@@ -34,7 +34,7 @@ trn acc 1.0
 test acc 0.908
 ```
 
-#### Regression
+### Regression
 Boston House Prices Dataset (http://lib.stat.cmu.edu/datasets/boston)
 
 ![Image](imgs/reg_model_hist.png) <br/>
@@ -64,7 +64,7 @@ To run the demo notebooks you will need a few additional packages:
 
 `nn = NeuralNetwork()` Initialize neural network.
 
-`nn.fit(X_trn, y_trn)` Train neural network.
+`nn.train(X_trn, y_trn)` Train neural network.
 
 `y_pred = nn.predict(X_test)` Run inference on data.
 
