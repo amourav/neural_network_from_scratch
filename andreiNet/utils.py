@@ -51,3 +51,17 @@ def batch_iterator(X, y, batch_size):
         X_batch, y_batch = X[start:stop], y[start:stop]
         yield X_batch, y_batch
 
+
+def get_with_keyword(key_word, implemented_dict):
+    """
+    Check if method is class is implemented
+    :param key_word: keyword parameter (str)
+    :param implemented_dict: maps keyword to function or class (dict)
+    :return: class or function
+    """
+    try:
+        var = implemented_dict[key_word]
+        return var
+    except KeyError:
+        raise Exception('{} not accepted'.format(key_word))
+

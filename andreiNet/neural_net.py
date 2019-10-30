@@ -1,19 +1,20 @@
 import numpy as np
 import copy
 
-from andreiNet.utils import one_hot_encode, shuffle_data, batch_iterator
+from andreiNet.utils import one_hot_encode, shuffle_data, batch_iterator, get_with_keyword
 from andreiNet.metrics import (implemented_metric_dict,
                                metric_criteria_dict,
                                accuracy)
 from andreiNet.losses import (implemented_loss_dict,
-                              CrossEntropy, MSE)
+                              Loss, CrossEntropy, MSE)
 from andreiNet.activations import (implemented_activations_dict,
-                                   Softmax, Linear,
+                                   Activation, Softmax, Linear,
                                    Sigmoid, ReLU)
 from andreiNet.Initialization import (implemented_weight_init_dict,
+                                      InitLayerWeight,
                                       HeNorm, UnitNorm, Ones,
                                       implemented_bias_init_dict,
-                                      Zeros)
+                                      InitLayerBiases, Zeros)
 
 
 class NeuralNetwork:
@@ -52,21 +53,25 @@ class NeuralNetwork:
         """
         Set the weight initialization procedure or throw error if not implemented
         """
-        try:
-            weight_init = implemented_weight_init_dict[self.init_weights]()
-            self.init_layer_weight = weight_init.get_array
-        except KeyError:
-            raise Exception('{} not accepted'.format(self.init_weights))
+        if type(self.init_weights) is str:
+            weight_init = get_with_keyword(self.init_weights, implemented_weight_init_dict)()
+        elif isinstance(self.init_weights, InitLayerWeight):
+            weight_init = self.init_weights
+        else:
+            raise Exception('weight init error')
+        self.init_layer_weight = weight_init.get_array
 
     def _set_bias_init(self):
         """
         Set the bias initialization procedure or throw error if not implemented
         """
-        try:
-            bias_init = implemented_bias_init_dict[self.init_bias]()
-            self.init_layer_bias = bias_init.get_array
-        except KeyError:
-            raise Exception('{} not accepted'.format(self.init_bias))
+        if type(self.init_bias) is str:
+            bias_init = get_with_keyword(self.init_bias, implemented_bias_init_dict)()
+        elif isinstance(self.init_bias, InitLayerBiases):
+            bias_init = self.init_bias
+        else:
+            raise Exception('bias init error')
+        self.init_layer_bias = bias_init.get_array
 
     def _init_history(self):
         """
