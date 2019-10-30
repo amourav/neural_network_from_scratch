@@ -11,11 +11,9 @@ from andreiNet.activations import (implemented_activations_dict,
                                    Softmax, Linear,
                                    Sigmoid, ReLU)
 from andreiNet.Initialization import (implemented_weight_init_dict,
-                                      init_layer_weight_he_norm,
-                                      init_layer_weight_unit_norm,
-                                      init_layer_weights_ones,
+                                      HeNorm, UnitNorm, Ones,
                                       implemented_bias_init_dict,
-                                      init_layer_bias_zeros)
+                                      Zeros)
 
 
 class NeuralNetwork:
@@ -55,7 +53,8 @@ class NeuralNetwork:
         Set the weight initialization procedure or throw error if not implemented
         """
         try:
-            self.init_layer_weight = implemented_weight_init_dict[self.init_weights]
+            weight_init = implemented_weight_init_dict[self.init_weights]()
+            self.init_layer_weight = weight_init.get_array
         except KeyError:
             raise Exception('{} not accepted'.format(self.init_weights))
 
@@ -64,7 +63,8 @@ class NeuralNetwork:
         Set the bias initialization procedure or throw error if not implemented
         """
         try:
-            self.init_layer_bias = implemented_bias_init_dict[self.init_bias]
+            bias_init = implemented_bias_init_dict[self.init_bias]()
+            self.init_layer_bias = bias_init.get_array
         except KeyError:
             raise Exception('{} not accepted'.format(self.init_bias))
 
@@ -115,10 +115,10 @@ class NeuralNetwork:
         or throw error if not implemented
         """
         # set activation function
-        activation = implemented_activations_dict[self.activation]
+        activation = implemented_activations_dict[self.activation]()
         try:
-            self.act = activation().act
-            self.act_derivative = activation().derivative
+            self.act = activation.act
+            self.act_derivative = activation.derivative
         except KeyError:
             raise Exception('{} not accepted'.format(self.activation))
 
@@ -428,3 +428,4 @@ class NeuralNetwork:
 
         self.weights = new_weights[::-1]
         self.biases = new_biases[::-1]
+
