@@ -34,8 +34,14 @@ def init_layer_weights_ones(input_shape, output_shape):
     return np.ones((input_shape, output_shape))
 
 
-# Bias Initialization
+# Implemented Weight Initializations
+implemented_weight_init_dict = {'unit_norm': init_layer_weight_unit_norm,
+                                'ones': init_layer_weights_ones,
+                                'he_norm': init_layer_weight_he_norm,
+                                }
 
+
+# Bias Initialization
 def init_layer_bias_zeros(length):
     """
     Initialize bias values for a single layer
@@ -43,4 +49,8 @@ def init_layer_bias_zeros(length):
     :return: Initialized bias values - npy arr
     """
     return np.zeros(length)
+
+# Implemented Bias Initializations
+implemented_bias_init_dict = {'zeros': init_layer_bias_zeros,
+                              }
 

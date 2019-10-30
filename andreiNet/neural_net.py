@@ -2,40 +2,24 @@ import numpy as np
 import copy
 
 from andreiNet.utils import one_hot_encode, shuffle_data, batch_iterator
-from andreiNet.metrics import accuracy
-from andreiNet.losses import cross_entropy, cross_entropy_derivative, MSE, MSE_derivative
-from andreiNet.activations import (softmax, softmax_gradient,
+from andreiNet.metrics import (implemented_metric_dict,
+                               metric_criteria_dict,
+                               accuracy)
+from andreiNet.losses import (implemented_loss_dict, implemented_loss_gradient_dict,
+                              cross_entropy, cross_entropy_derivative,
+                              MSE, MSE_derivative)
+from andreiNet.activations import (implemented_activations_dict,
+                                   implemented_act_derivative_dict,
+                                   softmax, softmax_gradient,
                                    linear, linear_derivative, linear_gradient,
                                    sigmoid, sigmoid_derivative,
                                    ReLU, ReLU_derivative)
-from andreiNet.Initialization import (init_layer_weight_he_norm,
+from andreiNet.Initialization import (implemented_weight_init_dict,
+                                      init_layer_weight_he_norm,
                                       init_layer_weight_unit_norm,
                                       init_layer_weights_ones,
+                                      implemented_bias_init_dict,
                                       init_layer_bias_zeros)
-
-
-implemented_weight_inits = {'unit_norm': init_layer_weight_unit_norm,
-                            'ones': init_layer_weights_ones,
-                            'he_norm': init_layer_weight_he_norm,
-                            }
-implemented_bias_inits = {'zeros': init_layer_bias_zeros,
-                          }
-implemented_activations = {'sigmoid': sigmoid,
-                           'ReLU': ReLU,
-                           'linear': linear}
-implemented_act_derivatives = {'sigmoid': sigmoid_derivative,
-                               'ReLU': ReLU_derivative,
-                               'linear': linear_derivative
-                               }
-implemented_losses = {'cross_entropy': cross_entropy,
-                      'MSE': MSE}
-implemented_loss_gradients = {'cross_entropy': cross_entropy_derivative,
-                              'MSE': MSE_derivative}
-implemented_metrics = {'accuracy': accuracy,
-                       'MSE': MSE,
-                       'cross_entropy': cross_entropy, }
-metric_criteria = {'accuracy': 'max',
-                   'cross_entropy': 'min', }
 
 
 class NeuralNetwork:
@@ -75,7 +59,7 @@ class NeuralNetwork:
         Set the weight initialization procedure or throw error if not implemented
         """
         try:
-            self.init_layer_weight = implemented_weight_inits[self.init_weights]
+            self.init_layer_weight = implemented_weight_init_dict[self.init_weights]
         except KeyError:
             raise Exception('{} not accepted'.format(self.init_weights))
 
@@ -84,7 +68,7 @@ class NeuralNetwork:
         Set the bias initialization procedure or throw error if not implemented
         """
         try:
-            self.init_layer_bias = implemented_bias_inits[self.init_bias]
+            self.init_layer_bias = implemented_bias_init_dict[self.init_bias]
         except KeyError:
             raise Exception('{} not accepted'.format(self.init_bias))
 
@@ -136,13 +120,13 @@ class NeuralNetwork:
         """
         # set activation function
         try:
-            self.act = implemented_activations[self.activation]
+            self.act = implemented_activations_dict[self.activation]
         except KeyError:
             raise Exception('{} not accepted'.format(self.activation))
 
         # set activation derivative (da/dz)
         try:
-            self.act_derivative = implemented_act_derivatives[self.activation]
+            self.act_derivative = implemented_act_derivative_dict[self.activation]
         except KeyError:
             raise Exception('derivative not implemented for {}'.format(self.activation))
 
@@ -162,8 +146,8 @@ class NeuralNetwork:
         or throw error if not implemented
         """
         try:
-            self.loss_func = implemented_losses[self.loss]
-            self.loss_grad_func = implemented_loss_gradients[self.loss]
+            self.loss_func = implemented_loss_dict[self.loss]
+            self.loss_grad_func = implemented_loss_gradient_dict[self.loss]
         except KeyError:
             raise Exception('{} not accepted'.format(self.loss))
 
@@ -209,7 +193,7 @@ class NeuralNetwork:
         y_pred = self.predict(X)
         for metric in self.metrics:
             try:
-                metric_func = implemented_metrics[metric]
+                metric_func = implemented_metric_dict[metric]
             except KeyError:
                 raise Exception('{} not accepted metric'.format(metric))
             metric_vals[metric] = metric_func(y, y_pred)
@@ -249,7 +233,7 @@ class NeuralNetwork:
         stop_criteria = False
         if self.early_stop is None:
             return stop_criteria
-        f = -1 if metric_criteria[self.stop_metric] == 'max' else 1
+        f = -1 if metric_criteria_dict[self.stop_metric] == 'max' else 1
         current_score = f * self.val_metric_hist[self.stop_metric][-1]
         if epoch == 1:
             self.counter = 0
@@ -442,6 +426,7 @@ class NeuralNetwork:
             dL_dW = act_prev.T @ self.dL_dz  # Weight Error
             dL_db = np.sum(self.dL_dz, axis=0)  # Bias Error
 
+            # Future work: implement custom optimizer
             w_l -= lr * dL_dW  # update weights
             b_l -= lr * dL_db  # update biases
             new_weights.append(w_l)
@@ -449,4 +434,3 @@ class NeuralNetwork:
 
         self.weights = new_weights[::-1]
         self.biases = new_biases[::-1]
-

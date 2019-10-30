@@ -92,3 +92,15 @@ def ReLU_derivative(z):
     """
     return (z > 0).astype(int)
 
+
+# Implemented activations
+implemented_activations_dict = {'sigmoid': sigmoid,
+                                'ReLU': ReLU,
+                                'linear': linear}
+
+# Implemented activations derivative
+implemented_act_derivative_dict = {'sigmoid': sigmoid_derivative,
+                                   'ReLU': ReLU_derivative,
+                                   'linear': linear_derivative
+                                   }
+

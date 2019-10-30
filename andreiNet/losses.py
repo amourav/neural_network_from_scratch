@@ -44,3 +44,10 @@ def MSE_derivative(y_true, y_pred):
     N = len(y_true)
     return (-2 / N) * (y_true - y_pred)
 
+# Implemented loss functions
+implemented_loss_dict = {'cross_entropy': cross_entropy,
+                         'MSE': MSE}
+
+# Implemented loss derivative
+implemented_loss_gradient_dict = {'cross_entropy': cross_entropy_derivative,
+                                  'MSE': MSE_derivative}

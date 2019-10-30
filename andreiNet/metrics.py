@@ -1,5 +1,5 @@
 import numpy as np
-
+from andreiNet.losses import MSE, cross_entropy
 
 def accuracy(y_true, y_pred):
     """
@@ -13,4 +13,14 @@ def accuracy(y_true, y_pred):
     if len(y_pred.shape) > 1:
         y_pred = y_pred.argmax(axis=1)
     return np.sum(y_true == y_pred) / len(y_true)
+
+
+# Implemented metrics
+implemented_metric_dict = {'accuracy': accuracy,
+                           'MSE': MSE,
+                           'cross_entropy': cross_entropy, }
+
+# Metric criteria
+metric_criteria_dict = {'accuracy': 'max',
+                        'cross_entropy': 'min', }
 
