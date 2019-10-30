@@ -11,6 +11,12 @@ class Loss:  # base class
     def grad(self, y_true, y_pred):
         raise NotImplementedError
 
+    def __repr__(self):
+        return self.__class__
+
+    def __str__(self):
+        return self.__class__
+
 
 class CrossEntropy(Loss):
     def __init__(self):
@@ -36,6 +42,13 @@ class CrossEntropy(Loss):
         N = len(y_true)
         return -(y_true / y_pred) / N
 
+    def __repr__(self):
+        return 'cross_entropy'
+
+    def __str__(self):
+        return 'cross_entropy'
+
+
 class MSE(Loss):
     def __init__(self):
         super().__init__()
@@ -60,7 +73,14 @@ class MSE(Loss):
         N = len(y_true)
         return (-2 / N) * (y_true - y_pred)
 
+    def __repr__(self):
+        return 'mse'
+
+    def __str__(self):
+        return 'mse'
+
+
 # Implemented loss functions
 implemented_loss_dict = {'cross_entropy': CrossEntropy,
-                         'MSE': MSE}
+                         'mse': MSE}
 

@@ -17,11 +17,11 @@ def accuracy(y_true, y_pred):
 
 # Implemented metrics
 implemented_metric_dict = {'accuracy': accuracy,
-                           'MSE': MSE().loss,
+                           'mse': MSE().loss,
                            'cross_entropy': CrossEntropy().loss}
 
 # Metric criteria
 metric_criteria_dict = {'accuracy': 'max',
                         'cross_entropy': 'min',
-                        'MSE': 'min'}
+                        'mse': 'min'}
 

@@ -1,7 +1,7 @@
 import numpy as np
 import copy
 
-from andreiNet.utils import one_hot_encode, shuffle_data, batch_iterator, get_with_keyword
+from andreiNet.utils import one_hot_encode, shuffle_data, batch_iterator, get_instance
 from andreiNet.metrics import (implemented_metric_dict,
                                metric_criteria_dict,
                                accuracy)
@@ -53,24 +53,20 @@ class NeuralNetwork:
         """
         Set the weight initialization procedure or throw error if not implemented
         """
-        if type(self.init_weights) is str:
-            weight_init = get_with_keyword(self.init_weights, implemented_weight_init_dict)()
-        elif isinstance(self.init_weights, InitLayerWeight):
-            weight_init = self.init_weights
-        else:
-            raise Exception('weight init error')
+        weight_init = get_instance(self.init_weights,
+                                   implemented_weight_init_dict,
+                                   InitLayerWeight,
+                                   error_msg='weight init error')
         self.init_layer_weight = weight_init.get_array
 
     def _set_bias_init(self):
         """
         Set the bias initialization procedure or throw error if not implemented
         """
-        if type(self.init_bias) is str:
-            bias_init = get_with_keyword(self.init_bias, implemented_bias_init_dict)()
-        elif isinstance(self.init_bias, InitLayerBiases):
-            bias_init = self.init_bias
-        else:
-            raise Exception('bias init error')
+        bias_init = get_instance(self.init_bias,
+                                 implemented_bias_init_dict,
+                                 InitLayerBiases,
+                                 error_msg='bias init error')
         self.init_layer_bias = bias_init.get_array
 
     def _init_history(self):
@@ -120,7 +116,10 @@ class NeuralNetwork:
         or throw error if not implemented
         """
         # set activation function
-        activation = implemented_activations_dict[self.activation]()
+        activation = get_instance(self.activation,
+                                  implemented_activations_dict,
+                                  Activation,
+                                  error_msg='activation function error')
         try:
             self.act = activation.act
             self.act_derivative = activation.derivative
@@ -143,12 +142,12 @@ class NeuralNetwork:
         or throw error if not implemented
         """
         # init loss
-        loss = implemented_loss_dict[self.loss]()
-        try:
-            self.loss_func = loss.loss
-            self.loss_grad_func = loss.grad
-        except KeyError:
-            raise Exception('{} not accepted'.format(self.loss))
+        loss = get_instance(self.loss,
+                            implemented_loss_dict,
+                            Loss,
+                            error_msg='Loss not accepted')
+        self.loss_func = loss.loss
+        self.loss_grad_func = loss.grad
 
     def _encode(self, y, n_classes):
         """
@@ -191,10 +190,13 @@ class NeuralNetwork:
             return metric_vals
         y_pred = self.predict(X)
         for metric in self.metrics:
-            try:
-                metric_func = implemented_metric_dict[metric]
-            except KeyError:
-                raise Exception('{} not accepted metric'.format(metric))
+            if type(metric) is str:
+                try:
+                    metric_func = implemented_metric_dict[metric]
+                except KeyError:
+                    raise Exception('{} not accepted metric'.format(metric))
+            elif isinstance(metric, Loss):
+                metric_func = metric.loss
             metric_vals[metric] = metric_func(y, y_pred)
         return metric_vals
 
@@ -323,7 +325,6 @@ class NeuralNetwork:
         :param save_best: track best model on val data if true - bool
         :param early_stop: early stop criteria (stop metric, patience) - tuple
         """
-
         self._set_early_stop(early_stop)
         self.n_samples, self.n_features = X.shape
         y_one_hot = self._encode(y, n_classes)

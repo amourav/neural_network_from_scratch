@@ -65,3 +65,12 @@ def get_with_keyword(key_word, implemented_dict):
     except KeyError:
         raise Exception('{} not accepted'.format(key_word))
 
+
+def get_instance(arg, implemented_dict, base_class, error_msg='error'):
+    if type(arg) is str:
+        instance = get_with_keyword(arg, implemented_dict)()
+    elif isinstance(arg, base_class):
+        instance = arg
+    else:
+        raise Exception(error_msg)
+    return instance

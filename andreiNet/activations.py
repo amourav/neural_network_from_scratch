@@ -16,6 +16,12 @@ class Activation:
         # use gradient for last layer only
         raise NotImplementedError
 
+    def __repr__(self):
+        return type(self).__name__
+
+    def __str__(self):
+        return type(self).__name__
+
 
 class Softmax(Activation):
     def __init__(self):
@@ -48,6 +54,12 @@ class Softmax(Activation):
         np.einsum('ijj->ij', res)[...] += sm
         return res
 
+    def __repr__(self):
+        return 'softmax'
+
+    def __str__(self):
+        return 'softmax'
+
 
 class Linear(Activation):
     def __init__(self):
@@ -79,6 +91,12 @@ class Linear(Activation):
         I = np.repeat(np.eye(K, K)[np.newaxis, :, :], N, axis=0)
         return I
 
+    def __repr__(self):
+        return 'linear'
+
+    def __str__(self):
+        return 'linear'
+
 
 class Sigmoid(Activation):
     def __init__(self):
@@ -98,11 +116,17 @@ class Sigmoid(Activation):
         :param z: layer input - npy arr
         :return: da/dz - npy array
         """
-        s = sigmoid(z)
+        s = self.act(z)
         return s * (1 - z)
 
     def grad(self, z):
         raise Exception('grad not appropriate for non-last layer')
+
+    def __repr__(self):
+        return 'sigmoid'
+
+    def __str__(self):
+        return 'sigmoid'
 
 
 class ReLU(Activation):
@@ -128,10 +152,16 @@ class ReLU(Activation):
     def grad(self, z):
         raise Exception('grad not appropriate for intermediate layer (derivative instead)')
 
+    def __repr__(self):
+        return 'relu'
+
+    def __str__(self):
+        return 'relu'
+
 
 # Implemented activations
 implemented_activations_dict = {'sigmoid': Sigmoid,
-                                'ReLU': ReLU,
+                                'relu': ReLU,
                                 'linear': Linear}
 
 
