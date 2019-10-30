@@ -22,5 +22,6 @@ implemented_metric_dict = {'accuracy': accuracy,
 
 # Metric criteria
 metric_criteria_dict = {'accuracy': 'max',
-                        'cross_entropy': 'min', }
+                        'cross_entropy': 'min',
+                        'MSE': 'min'}
 

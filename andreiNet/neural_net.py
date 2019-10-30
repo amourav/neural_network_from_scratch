@@ -8,11 +8,8 @@ from andreiNet.metrics import (implemented_metric_dict,
 from andreiNet.losses import (implemented_loss_dict,
                               CrossEntropy, MSE)
 from andreiNet.activations import (implemented_activations_dict,
-                                   implemented_act_derivative_dict,
-                                   softmax, softmax_gradient,
-                                   linear, linear_derivative, linear_gradient,
-                                   sigmoid, sigmoid_derivative,
-                                   ReLU, ReLU_derivative)
+                                   Softmax, Linear,
+                                   Sigmoid, ReLU)
 from andreiNet.Initialization import (implemented_weight_init_dict,
                                       init_layer_weight_he_norm,
                                       init_layer_weight_unit_norm,
@@ -118,26 +115,22 @@ class NeuralNetwork:
         or throw error if not implemented
         """
         # set activation function
+        activation = implemented_activations_dict[self.activation]
         try:
-            self.act = implemented_activations_dict[self.activation]
+            self.act = activation().act
+            self.act_derivative = activation().derivative
         except KeyError:
             raise Exception('{} not accepted'.format(self.activation))
 
-        # set activation grad (da/dz)
-        try:
-            self.act_derivative = implemented_act_derivative_dict[self.activation]
-        except KeyError:
-            raise Exception('grad not implemented for {}'.format(self.activation))
-
         # set activation for last layer (softmax for classification and linear for regression)
         if self.mode == 'classification':
-            self.last_act = softmax
-            self.last_act_grad = softmax_gradient
+            last_activation = Softmax()
         elif self.mode == 'regression':
-            self.last_act = linear
-            self.last_act_grad = linear_gradient
+            last_activation = Linear()
         else:
             raise Exception('{} not accepted.'.format(self.mode))
+        self.last_act = last_activation.act
+        self.last_act_grad = last_activation.grad
 
     def _set_loss(self):
         """
