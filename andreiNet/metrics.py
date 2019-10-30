@@ -1,5 +1,5 @@
 import numpy as np
-from andreiNet.losses import MSE, cross_entropy
+from andreiNet.losses import MSE, CrossEntropy
 
 def accuracy(y_true, y_pred):
     """
@@ -17,8 +17,8 @@ def accuracy(y_true, y_pred):
 
 # Implemented metrics
 implemented_metric_dict = {'accuracy': accuracy,
-                           'MSE': MSE,
-                           'cross_entropy': cross_entropy, }
+                           'MSE': MSE().loss,
+                           'cross_entropy': CrossEntropy().loss}
 
 # Metric criteria
 metric_criteria_dict = {'accuracy': 'max',

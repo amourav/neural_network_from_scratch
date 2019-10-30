@@ -142,7 +142,7 @@ Andrei Mouraviev
 
 ## References
 
-[1] https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
+[1] https://eli.thegreenplace.net/2016/the-softmax-function-and-its-grad/
 
 [2] https://peterroelants.github.io/posts/neural-network-implementation-part04/
 

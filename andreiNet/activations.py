@@ -60,14 +60,14 @@ def sigmoid(z):
     """
     Sigmoid intermediate layer activation
     :param z: layer input - npy arr
-    :return: sigmoid derivative - npy arr
+    :return: sigmoid grad - npy arr
     """
     return 1 / (1 + np.exp(-z))
 
 
 def sigmoid_derivative(z):
     """
-    Sigmoid activation derivative
+    Sigmoid activation grad
     :param z: layer input - npy arr
     :return: da/dz - npy array
     """
@@ -86,7 +86,7 @@ def ReLU(z):
 
 def ReLU_derivative(z):
     """
-    Relu derivative
+    Relu grad
     :param z: layer input - npy arr
     :return: da/dz - npy arr
     """
@@ -98,7 +98,7 @@ implemented_activations_dict = {'sigmoid': sigmoid,
                                 'ReLU': ReLU,
                                 'linear': linear}
 
-# Implemented activations derivative
+# Implemented activations grad
 implemented_act_derivative_dict = {'sigmoid': sigmoid_derivative,
                                    'ReLU': ReLU_derivative,
                                    'linear': linear_derivative

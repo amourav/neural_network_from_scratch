@@ -5,9 +5,8 @@ from andreiNet.utils import one_hot_encode, shuffle_data, batch_iterator
 from andreiNet.metrics import (implemented_metric_dict,
                                metric_criteria_dict,
                                accuracy)
-from andreiNet.losses import (implemented_loss_dict, implemented_loss_gradient_dict,
-                              cross_entropy, cross_entropy_derivative,
-                              MSE, MSE_derivative)
+from andreiNet.losses import (implemented_loss_dict,
+                              CrossEntropy, MSE)
 from andreiNet.activations import (implemented_activations_dict,
                                    implemented_act_derivative_dict,
                                    softmax, softmax_gradient,
@@ -124,11 +123,11 @@ class NeuralNetwork:
         except KeyError:
             raise Exception('{} not accepted'.format(self.activation))
 
-        # set activation derivative (da/dz)
+        # set activation grad (da/dz)
         try:
             self.act_derivative = implemented_act_derivative_dict[self.activation]
         except KeyError:
-            raise Exception('derivative not implemented for {}'.format(self.activation))
+            raise Exception('grad not implemented for {}'.format(self.activation))
 
         # set activation for last layer (softmax for classification and linear for regression)
         if self.mode == 'classification':
@@ -145,9 +144,11 @@ class NeuralNetwork:
         Set loss function and gradient
         or throw error if not implemented
         """
+        # init loss
+        loss = implemented_loss_dict[self.loss]()
         try:
-            self.loss_func = implemented_loss_dict[self.loss]
-            self.loss_grad_func = implemented_loss_gradient_dict[self.loss]
+            self.loss_func = loss.loss
+            self.loss_grad_func = loss.grad
         except KeyError:
             raise Exception('{} not accepted'.format(self.loss))
 
