@@ -74,7 +74,7 @@ class NeuralNetwork:
         Initialize model history
         :return:
         """
-        self.metrics.append(self.loss)
+        self.metrics.append(str(self.loss))
         self.trn_metric_hist = {}
         self.val_metric_hist = {}
         if self.metrics is not None:
@@ -92,6 +92,7 @@ class NeuralNetwork:
         self._set_weight_init()
         self._set_bias_init()
         self._init_history()
+        self._set_metrics()
         self.weights = []
         self.biases = []
         for layer in range(len(self.hidden) + 1):
@@ -149,6 +150,20 @@ class NeuralNetwork:
         self.loss_func = loss.loss
         self.loss_grad_func = loss.grad
 
+    def _set_metrics(self):
+        """
+        set metric functions
+        or throw error if not implemented
+        """
+        metric_functions = []
+        for metric in self.metrics:
+            metric_func = get_instance(metric,
+                                       implemented_metric_dict,
+                                       Loss,
+                                       error_msg='metric not accepted').eval
+            metric_functions.append(metric_func)
+        self.metric_functions = metric_functions
+
     def _encode(self, y, n_classes):
         """
         One hot encode targets if in classification mode
@@ -178,7 +193,7 @@ class NeuralNetwork:
             if self.stop_metric not in self.metrics:
                 self.metrics.append(self.stop_metric)
 
-    def _get_metrics(self, X, y):
+    def _get_metric_values(self, X, y):
         """
         Evaluate tracked metrics
         :param X: Input data - npy array
@@ -189,11 +204,7 @@ class NeuralNetwork:
         if self.metrics is None:
             return metric_vals
         y_pred = self.predict(X)
-        for metric in self.metrics:
-            metric_func = get_instance(metric,
-                                       implemented_metric_dict,
-                                       Loss,
-                                       error_msg='metric not accepted').eval
+        for metric, metric_func in zip(self.metrics, self.metric_functions):
             metric_vals[metric] = metric_func(y, y_pred)
         return metric_vals
 
@@ -205,11 +216,11 @@ class NeuralNetwork:
         :param y_ohe: targets - npy array
         :param val_data: validation data (X_val, y_val) - tuple
         """
-        self.metrics_trn = self._get_metrics(X, y_ohe)
+        self.metrics_trn = self._get_metric_values(X, y_ohe)
         if val_data is not None:
             X_val, y_val = val_data
             y_val_ohe = self._encode(y_val, self.n_classes)
-            self.metrics_val = self._get_metrics(X_val, y_val_ohe)
+            self.metrics_val = self._get_metric_values(X_val, y_val_ohe)
 
     def _update_history(self, update_val=False):
         """
@@ -270,7 +281,7 @@ class NeuralNetwork:
         :param val_data: validation data (x_val, y_val) - tuple
         """
         if save_best and (val_data is not None):
-            current_score = self.val_metric_hist[self.loss][-1]
+            current_score = self.val_metric_hist[str(self.loss)][-1]
             if epoch == 1:
                 if self.verbose:
                     print('model checkpoint {}'.format(epoch))

@@ -4,7 +4,7 @@ from andreiNet.losses import (implemented_loss_dict,
                               FocalLoss)
 
 
-class Metric:  # base class
+class Metric:  # base class - ignore
     def __init__(self):
         pass
 
@@ -34,6 +34,18 @@ class Accuracy(Loss):
         if len(y_pred.shape) > 1:
             y_pred = y_pred.argmax(axis=1)
         return np.sum(y_true == y_pred) / len(y_true)
+
+    def loss(self, y_true, y_pred):
+        raise NotImplementedError
+
+    def grad(self, y_true, y_pred):
+        raise NotImplementedError
+
+    def __repr__(self):
+        return 'accuracy'
+
+    def __str__(self):
+        return 'accuracy'
 
 
 # Implemented metrics
