@@ -16,11 +16,13 @@ ANN illustration.
 source: https://en.wikipedia.org/wiki/Artificial_neural_network
 
 ## Dataset
-Here I tried to replicate the performance of the identical network architecture implemented in Keras on some toy datasets.
+Here, I evaluated two neural networks with identical architecture, hyper-parameters, and random seeds. 
+One was implemented with <i>andreiNet</i> and the other with <i>Keras</i>. 
+The performance of the two methods is nearly identical, as seen below.
 
 ### Classification
-Iris Dataset (https://en.wikipedia.org/wiki/Iris_flower_data_set)
-
+Iris Dataset (https://en.wikipedia.org/wiki/Iris_flower_data_set) <br/>
+Details may be seen in <i> neural_network_demo_classification.ipynb </i>
 ![Image](imgs/clf_model_hist.png) <br/>
 ![Image](imgs/clf_comparison.png) <br/>
 andreiNet Accuracy:
@@ -36,7 +38,7 @@ test acc 0.908
 
 ### Regression
 Boston House Prices Dataset (http://lib.stat.cmu.edu/datasets/boston)
-
+Details may be seen in <i> neural_network_demo_regression.ipynb </i>
 ![Image](imgs/reg_model_hist.png) <br/>
 ![Image](imgs/reg_comparison.png) <br/>
 andreiNet MSE:
@@ -73,9 +75,10 @@ example:
 ```
 from andreiNet.neural_net import NeuralNetwork
 from andreiNet.utils import norm_data, one_hot_encode
-from andreiNet.metrics import accuracy
+from andreiNet.metrics import Accuracy
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
+accuracy = Accuracy.eval
 
 # Load Dataset
 iris = datasets.load_iris()
@@ -84,18 +87,16 @@ y = iris.target
 
 # We will also split the dataset into training and testing so we can evaluate the kNN classifier
 X_trn, X_test, y_trn, y_test = train_test_split(X, 
-                                                  y, 
-                                                  test_size=0.80, 
-                                                  random_state=0,
-                                                  stratify=y)
+                                                y, 
+                                                test_size=0.80, 
+                                                random_state=0,
+                                                stratify=y)
 
 X_trn_norm, (trn_mean, trn_std) = norm_data(X_trn)
 X_test_norm = (X_test - trn_mean) / trn_std                                             y, 
-                                                 test_size=0.333, 
-                                                 random_state=0,
-                                                 stratify=y)
+
 # Set parameters
-activation = 'ReLU'
+activation = 'relu'
 batch_size = 50
 random_state = 0
 lr = 0.001
@@ -147,3 +148,5 @@ Andrei Mouraviev
 [2] https://peterroelants.github.io/posts/neural-network-implementation-part04/
 
 [3] https://stackoverflow.com/questions/57741998/vectorizing-softmax-cross-entropy-gradient
+
+[4] https://github.com/joelgrus/joelnet
