@@ -7,7 +7,7 @@ class Loss:  # base class
 
     def loss(self, y_true, y_pred):
         raise NotImplementedError
-
+    
     def grad(self, y_true, y_pred):
         raise NotImplementedError
 
@@ -55,20 +55,18 @@ class FocalLoss(Loss):
         super().__init__()
         self.alpha = alpha
         self.gamma = float(gamma)
-        assert (gamma >= 0)
+        assert(gamma >= 0)
+        self._set_alpha()
 
-    def _set_alpha(self, y_true):
+    def _set_alpha(self):
         """
         set class weight parameter (alpha)
-        :param y_true: ground truth targets - npy arr
         :return: alpha - 1.0 (float) or numpy array (n_classes)
         """
         if self.alpha is None:
             self.alpha = 1.0
-        elif self.alpha is 'inverse_freq':
-            elements, freq = np.unique(y_true.argmax(axis=1),
-                                       return_counts=True)
-            self.alpha = np.ones(shape=len(elements)) / freq
+        elif type(self.alpha) is int or type(self.alpha) is float:
+            self.alpha = float(self.alpha)
         elif type(self.alpha) is list:
             self.alpha = np.array(self.alpha)
         else:
@@ -82,7 +80,6 @@ class FocalLoss(Loss):
         :return: evaluated cross entropy - float
         """
 
-        self._set_alpha(y_true)
         # down weight easy examples
         weight = self.alpha * (1 - y_true * y_pred) ** self.gamma
 
