@@ -142,5 +142,6 @@ class MSE(Loss):
 
 # Implemented loss functions
 implemented_loss_dict = {'cross_entropy': CrossEntropy,
+                         'focal_loss': FocalLoss,
                          'mse': MSE}
 

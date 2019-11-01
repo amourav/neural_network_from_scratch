@@ -1,5 +1,7 @@
 import numpy as np
-from andreiNet.losses import Loss, MSE, CrossEntropy, FocalLoss
+from andreiNet.losses import (implemented_loss_dict,
+                              Loss, MSE, CrossEntropy,
+                              FocalLoss)
 
 
 class Metric:  # base class
@@ -35,10 +37,10 @@ class Accuracy(Loss):
 
 
 # Implemented metrics
+
 implemented_metric_dict = {'accuracy': Accuracy,
-                           'mse': MSE,
-                           'cross_entropy': CrossEntropy,
-                           'focal_loss': FocalLoss}
+                           }
+implemented_metric_dict.update(implemented_loss_dict)
 
 # Metric criteria
 metric_criteria_dict = {'accuracy': 'max',
