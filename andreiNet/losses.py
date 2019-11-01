@@ -7,6 +7,9 @@ class Loss:  # base class
 
     def loss(self, y_true, y_pred):
         raise NotImplementedError
+
+    def eval(self, y_true, y_pred):
+        return self.loss(y_true, y_pred)
     
     def grad(self, y_true, y_pred):
         raise NotImplementedError

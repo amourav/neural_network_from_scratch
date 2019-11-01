@@ -72,5 +72,5 @@ def get_instance(arg, implemented_dict, base_class, error_msg='error'):
     elif isinstance(arg, base_class):
         instance = arg
     else:
-        raise Exception(error_msg)
+        raise Exception(error_msg + ': ' + str(arg))
     return instance

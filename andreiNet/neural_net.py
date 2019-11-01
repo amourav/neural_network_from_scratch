@@ -2,9 +2,9 @@ import numpy as np
 import copy
 
 from andreiNet.utils import one_hot_encode, shuffle_data, batch_iterator, get_instance
-from andreiNet.metrics import (implemented_metric_dict,
-                               metric_criteria_dict,
-                               accuracy)
+from andreiNet.metrics import (Metric, Accuracy,
+                               implemented_metric_dict,
+                               metric_criteria_dict)
 from andreiNet.losses import (implemented_loss_dict,
                               Loss, CrossEntropy, MSE)
 from andreiNet.activations import (implemented_activations_dict,
@@ -190,13 +190,10 @@ class NeuralNetwork:
             return metric_vals
         y_pred = self.predict(X)
         for metric in self.metrics:
-            if type(metric) is str:
-                try:
-                    metric_func = implemented_metric_dict[metric]
-                except KeyError:
-                    raise Exception('{} not accepted metric'.format(metric))
-            elif isinstance(metric, Loss):
-                metric_func = metric.loss
+            metric_func = get_instance(metric,
+                                       implemented_metric_dict,
+                                       Loss,
+                                       error_msg='metric not accepted').eval
             metric_vals[metric] = metric_func(y, y_pred)
         return metric_vals
 
